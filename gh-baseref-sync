@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -e
+
+# This script is intended to be used as a GitHub CLI alias to sync the current branch with the base branch of the pull request it is associated with.
+
+echo "Checking if there's a PR associated with the current branch..."
+
+PR_NUMBER=$(gh pr view --json number -q .number | tr -d '\n')
+
+if [ -z "$PR_NUMBER" ]; then
+  echo "The current branch is not associated with a pull request" >&2
+
+  TARGET_REF=$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name | tr -d '\n')
+else
+  echo "The current branch is associated with the PR #$PR_NUMBER"
+
+  TARGET_REF=$(gh pr view --json baseRefName -q .baseRefName | tr -d '\n')
+fi
+
+echo "Pulling from $TARGET_REF..."
+
+exec git merge origin/$TARGET_REF
